@@ -37,6 +37,10 @@ func Reverse(link string) (target string, err error) {
 		return
 	}
 	target = filepath.Join(filepath.Dir(link), target)
+	err = os.Remove(link)
+	if err != nil {
+		return
+	}
 	err = os.Rename(target, link)
 	return
 }
@@ -60,17 +64,20 @@ func main() {
 	if *reverse {
 		var target string
 		target, err = Reverse(args[0])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
 		if target == "" {
 			fmt.Fprintln(os.Stderr, args[0], ": is not a Symlink!")
 		} else {
 			fmt.Println(target)
 		}
 	} else {
-
 		err = MoveLink(args[0], args[1])
-	}
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
 	}
 }

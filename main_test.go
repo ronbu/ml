@@ -7,13 +7,25 @@ import (
 	"testing"
 )
 
+func TestMoveLinkAndReverseWithDirs(t *testing.T) {
+	moveLinkAndReverse(t, func(from string) error {
+		return os.Mkdir(from, 0777)
+	})
+}
+
 func TestMoveLinkAndReverse(t *testing.T) {
+	moveLinkAndReverse(t, func(from string) error {
+		return ioutil.WriteFile(from, byte(""), 0777)
+	})
+}
+
+func moveLinkAndReverse(t *testing.T, createFrom func(string) error) {
 	tmp, rm := TempDir()
 	defer rm()
 
 	from := tmp + "/from"
 	to := tmp + "/to"
-	err := ioutil.WriteFile(from, []byte(""), 0777)
+	err := createFrom(from)
 	if err != nil {
 		t.Fatal(err)
 	}
