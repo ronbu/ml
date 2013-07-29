@@ -8,7 +8,15 @@ import (
 )
 
 func MoveLink(from, to string) (err error) {
-	relTo, err := filepath.Rel(filepath.Dir(from), to)
+	absFrom, err := filepath.Abs(from)
+	if err != nil {
+		return
+	}
+	absTo, err := filepath.Abs(to)
+	if err != nil {
+		return
+	}
+	relTo, err := filepath.Rel(filepath.Dir(absFrom), absTo)
 	if err != nil {
 		return
 	}
@@ -20,8 +28,6 @@ func MoveLink(from, to string) (err error) {
 	if err != nil {
 		return
 	}
-	// println("relto target: ", relTo, target)
-	// println("from to: ", from, to)
 	return os.Symlink(relTo, from)
 }
 
@@ -43,14 +49,15 @@ func main() {
 	reverse := flag.Bool("reverse", false, "Reverse ml")
 	flag.Parse()
 
+	if !(flag.NArg() == 2 || flag.NArg() == 1) {
+		flag.Usage()
+		fmt.Fprintln(os.Stderr, "Wrong number of arguments.")
+		os.Exit(1)
+	}
+
 	var err error
 	args := flag.Args()
 	if *reverse {
-		if flag.NArg() != 1 {
-			flag.Usage()
-			fmt.Fprintln(os.Stderr, "Needs 2 arguments when -reverse is not set.")
-			os.Exit(1)
-		}
 		var target string
 		target, err = Reverse(args[0])
 		if target == "" {
@@ -59,11 +66,7 @@ func main() {
 			fmt.Println(target)
 		}
 	} else {
-		if flag.NArg() != 2 {
-			flag.Usage()
-			fmt.Fprintln(os.Stderr, "Only 1 argument when -reverse is set.")
-			os.Exit(1)
-		}
+
 		err = MoveLink(args[0], args[1])
 	}
 	if err != nil {
