@@ -8,6 +8,8 @@ import (
 )
 
 func MoveLink(from, to string) (err error) {
+	from = filepath.Clean(from)
+	to = filepath.Clean(to)
 	absFrom, err := filepath.Abs(from)
 	if err != nil {
 		return
@@ -28,7 +30,11 @@ func MoveLink(from, to string) (err error) {
 	if err != nil {
 		return
 	}
-	return os.Symlink(relTo, from)
+	err = os.Symlink(relTo, from)
+	if err != nil {
+		os.Rename(to, from)
+	}
+	return
 }
 
 func Reverse(link string) (target string, err error) {

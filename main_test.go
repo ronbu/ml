@@ -150,6 +150,51 @@ func TestRelativePath(t *testing.T) {
 	}
 }
 
+func TestSlashAtEndOfPath(t *testing.T) {
+	tmp, rm := TempDir()
+	defer rm()
+
+	from := tmp + "/from/"
+	to := tmp + "/to"
+	err := os.Mkdir(from, 0777)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	relFrom, err := filepath.Rel(wd, from)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = MoveLink(relFrom, to)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = os.Stat(to)
+	if err != nil {
+		t.Fatal(err)
+	}
+	link, err := os.Readlink(relFrom)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if link != "to" {
+		t.Fatal("Wrong link target created: ", link)
+	}
+
+	target, err := Reverse(from)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if target != to {
+		t.Fatal("Reverse reports wrong link target:", target, "should be:", to)
+	}
+}
+
 func TempDir() (string, func()) {
 	path, err := ioutil.TempDir("", "TestMl")
 	check(err)
